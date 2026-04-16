@@ -11,9 +11,15 @@ let currentImage = null;
 // Theme toggle
 themeToggle.addEventListener('click', () => {
     const theme = document.getElementById('theme');
-    const isDark = theme.getAttribute('href') === 'styles/dark.css';
-    theme.setAttribute('href', isDark ? 'styles/light.css' : 'styles/dark.css');
-    themeToggle.textContent = isDark ? '☀️' : '🌙';
+    const isDark = theme.getAttribute('href').includes('dark.css');
+    
+    if (isDark) {
+        theme.setAttribute('href', 'website/styles/light.css');
+        themeToggle.textContent = '☀️';
+    } else {
+        theme.setAttribute('href', 'website/styles/dark.css');
+        themeToggle.textContent = '🌙';
+    }
 });
 
 // Image paste support
