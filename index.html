@@ -3,34 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generive AI</title>
-    <link rel="stylesheet" href="website/styles/dark.css" id="theme">
+    <title>Bit AI</title>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Generive</h1>
-            <button id="themeToggle">🌙</button>
-        </header>
-        
-        <div class="chat-container" id="chatContainer">
-            <div class="welcome-message">
-                <h2>Welcome to Generive</h2>
-                <p>I can help you with thinking, image generation, music generation, code, and more.</p>
-            </div>
-        </div>
-        
-        <div class="input-container">
-            <div class="image-preview" id="imagePreview"></div>
-            <textarea id="userInput" placeholder="Message Generive..." rows="1"></textarea>
-            <button id="imageUpload" title="Paste image (Ctrl+V)">📷</button>
-            <button id="sendBtn">Send</button>
-        </div>
-    </div>
-    
-    <input type="file" id="fileInput" accept="image/*" style="display: none;">
-    
-    <script src="website/script/ai.js"></script>
-    <script src="website/script/index.js"></script>
+   <script src="groq.js"></script>
+   <script src="index.js"></script>
 </body>
 </html>
