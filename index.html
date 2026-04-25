@@ -3,10 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
     <title>Bit AI</title>
 </head>
 <body>
-   <script src="groq.js"></script>
-   <script src="index.js"></script>
+    <main id="app-container" class="slide-in">
+        <div class="welcome-content">
+            <p class="pre-header">Sign up to continue!</p>
+            <h1>Bit says Hi!</h1>
+            <div class="auth-wrapper">
+                <button class="main-btn">Sign Up with...</button>
+                <div class="split-options">
+                    <button class="auth-btn google">Google</button>
+                    <button class="auth-btn github">GitHub</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="groq.js"></script>
+    <script src="index.js"></script>
+    <div id="status-msg" class="status-hidden"></div>
 </body>
 </html>
