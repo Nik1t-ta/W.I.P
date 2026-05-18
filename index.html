@@ -1,14 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bit AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dictionary Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #chat-container {
+            width: 400px;
+            height: 500px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-bottom: 1px solid #eee;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .bot {
+            background-color: #e9ecef;
+            color: #333;
+            align-self: flex-start;
+        }
+        #input-area {
+            display: flex;
+            padding: 10px;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+        #send-btn {
+            padding: 10px 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div class="welcome">
-    <h1 class="welcomerh1">Bit says "Hello"</h1>
-  </div>
-  <script src="script.js"></script>
+
+    <div id="chat-container">
+        <div id="chat-box">
+            <div class="message bot" id="status-msg">Connecting to dictionary.txt...</div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Type a message..." disabled>
+            <button id="send-btn" disabled>Send</button>
+        </div>
+    </div>
+
+    <script>
+        let dictionary = [];
+
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatBox = document.getElementById('chat-box');
+        const statusMsg = document.getElementById('status-msg');
+
+        // Automatically fetch the dictionary.txt file from the same folder on load
+        async function loadDictionary() {
+            try {
+                const response = await fetch('dictionary.txt');
+                
+                if (!response.ok) {
+                    throw new Error("Could not find or read dictionary.txt");
+                }
+
+                const text = await response.text();
+                
+                // Break file into array lines, clean up whitespace, remove empty lines
+                dictionary = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
+
+                if (dictionary.length > 0) {
+                    statusMsg.textContent = `Connected! loaded ${dictionary.length} words from dictionary.txt. Ask me anything!`;
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                } else {
+                    statusMsg.textContent = "Error: dictionary.txt is empty!";
+                }
+            } catch (error) {
+                statusMsg.innerHTML = `<strong>Error loading file:</strong> Please ensure you are running a local server (e.g., Live Server in VS Code) and that 'dictionary.txt' is in this exact folder.`;
+                console.error(error);
+            }
+        }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage('User', text);
+            userInput.value = '';
+
+            setTimeout(() => {
+                const botReply = getBotResponse();
+                appendMessage('Bot', botReply);
+            }, 400);
+        }
+
+        function getBotResponse() {
+            if (dictionary.length === 0) return "I have no words loaded.";
+            const randomIndex = Math.floor(Math.random() * dictionary.length);
+            return dictionary[randomIndex];
+        }
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender.toLowerCase());
+            msgDiv.textContent = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Run the setup immediately
+        loadDictionary();
+    </script>
 </body>
 </html>
