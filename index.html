@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dictionary Chatbot</title>
+    <title>Whatever is this...</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -70,7 +70,6 @@
     </style>
 </head>
 <body>
-
     <div id="chat-container">
         <div id="chat-box">
             <div class="message bot" id="status-msg">Connecting to dictionary.txt...</div>
@@ -80,61 +79,50 @@
             <button id="send-btn" disabled>Send</button>
         </div>
     </div>
-
     <script>
         let dictionary = [];
-
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const chatBox = document.getElementById('chat-box');
         const statusMsg = document.getElementById('status-msg');
-
-        // Automatically fetch the dictionary.txt file from the same folder on load
         async function loadDictionary() {
             try {
                 const response = await fetch('dictionary.txt');
-                
                 if (!response.ok) {
-                    throw new Error("Could not find or read dictionary.txt");
+                    throw new Error("Could not read dictionary.txt");
                 }
-
                 const text = await response.text();
-                
-                // Break file into array lines, clean up whitespace, remove empty lines
                 dictionary = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
-
+                if (dictionary.length === 1) {
+                    dictionary = text.split(/\s+/).map(word => word.trim()).filter(word => word.length > 0);
+                }
                 if (dictionary.length > 0) {
-                    statusMsg.textContent = `Connected! loaded ${dictionary.length} words from dictionary.txt. Ask me anything!`;
+                    statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt.`;
                     userInput.disabled = false;
                     sendBtn.disabled = false;
                 } else {
-                    statusMsg.textContent = "Error: dictionary.txt is empty!";
+                    statusMsg.textContent = "Error: dictionary.txt is empty.";
                 }
             } catch (error) {
-                statusMsg.innerHTML = `<strong>Error loading file:</strong> Please ensure you are running a local server (e.g., Live Server in VS Code) and that 'dictionary.txt' is in this exact folder.`;
+                statusMsg.textContent = "Error loading dictionary.txt. Make sure both files are in the same directory and hosted via GitHub Pages.";
                 console.error(error);
             }
         }
-
         function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
-
             appendMessage('User', text);
             userInput.value = '';
-
             setTimeout(() => {
                 const botReply = getBotResponse();
                 appendMessage('Bot', botReply);
             }, 400);
         }
-
         function getBotResponse() {
             if (dictionary.length === 0) return "I have no words loaded.";
             const randomIndex = Math.floor(Math.random() * dictionary.length);
             return dictionary[randomIndex];
         }
-
         function appendMessage(sender, text) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender.toLowerCase());
@@ -142,13 +130,10 @@
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendMessage();
         });
-
-        // Run the setup immediately
         loadDictionary();
     </script>
 </body>
