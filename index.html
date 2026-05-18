@@ -80,105 +80,61 @@
         </div>
     </div>
     <script>
-let dictionary = [];
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-    const chatBox = document.getElementById('chat-box');
-    const statusMsg = document.getElementById('status-msg');
-
-    async function loadDictionary() {
-        try {
-            const response = await fetch('dictionary.txt');
-            if (!response.ok) {
-                throw new Error("Could not read dictionary.txt");
+        let dictionary = [];
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatBox = document.getElementById('chat-box');
+        const statusMsg = document.getElementById('status-msg');
+        async function loadDictionary() {
+            try {
+                const response = await fetch('dictionary.txt');
+                if (!response.ok) {
+                    throw new Error("Could not read dictionary.txt");
+                }
+                const text = await response.text();
+                dictionary = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
+                if (dictionary.length === 1) {
+                    dictionary = text.split(/\s+/).map(word => word.trim()).filter(word => word.length > 0);
+                }
+                if (dictionary.length > 0) {
+                    statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt.`;
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                } else {
+                    statusMsg.textContent = "Error: dictionary.txt is empty.";
+                }
+            } catch (error) {
+                statusMsg.textContent = "Error loading dictionary.txt. Make sure both files are in the same directory and hosted via GitHub Pages.";
+                console.error(error);
             }
-            const text = await response.text();
-            dictionary = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
-            
-            if (dictionary.length === 1) {
-                dictionary = text.split(/\s+/).map(word => word.trim()).filter(word => word.length > 0);
-            }
-
-            if (dictionary.length > 0) {
-                statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt.`;
-                userInput.disabled = false;
-                sendBtn.disabled = false;
-            } else {
-                statusMsg.textContent = "Error: dictionary.txt is empty.";
-            }
-        } catch (error) {
-            statusMsg.textContent = "Error loading dictionary.txt. Make sure both files are in the same directory.";
-            console.error(error);
         }
-    }
-
-    function getBotResponse(userText) {
-        if (dictionary.length === 0) return "I have no words loaded...";
-
-        const input = userText.toLowerCase().trim();
-
-        // Basic smart replies
-        if (input.includes("hi") || input.includes("hello")) {
-            return "Hello there! 👋";
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            appendMessage('User', text);
+            userInput.value = '';
+            setTimeout(() => {
+                const botReply = getBotResponse();
+                appendMessage('Bot', botReply);
+            }, 400);
         }
-        if (input.includes("how are you")) {
-            return "I'm running on pure dictionary energy, thanks for asking!";
+        function getBotResponse() {
+            if (dictionary.length === 0) return "I have no words loaded.";
+            const randomIndex = Math.floor(Math.random() * dictionary.length);
+            return dictionary[randomIndex];
         }
-        if (input.includes("name") || input.includes("who are you")) {
-            return "I'm Dictionary Bot. I know a lot of words.";
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender.toLowerCase());
+            msgDiv.textContent = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
-        if (input.includes("joke")) {
-            return "Why do JavaScript developers wear glasses? Because they don't C#.";
-        }
-        if (input.includes("bye") || input.includes("goodbye")) {
-            return "Goodbye! Come back anytime.";
-        }
-
-        // Try to find relevant words from dictionary
-        const relevant = dictionary.filter(word => {
-            const w = word.toLowerCase();
-            return input.includes(w) || w.includes(input);
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
         });
-
-        if (relevant.length > 0) {
-            const word = relevant[Math.floor(Math.random() * relevant.length)];
-            return `Ah, ${word}... Good one.`;
-        }
-
-        // Random but nicer fallback
-        const randomWord = dictionary[Math.floor(Math.random() * dictionary.length)];
-        return `You said "${userText}". ${randomWord} is a nice word, don't you think?`;
-    }
-
-    function sendMessage() {
-        const text = userInput.value.trim();
-        if (!text) return;
-
-        appendMessage('User', text);
-        userInput.value = '';
-
-        setTimeout(() => {
-            const botReply = getBotResponse(text);
-            appendMessage('Bot', botReply);
-        }, 400);
-    }
-
-    function appendMessage(sender, text) {
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message', sender.toLowerCase());
-        msgDiv.textContent = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // Event listeners
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    // Start the app
-    loadDictionary();
+        loadDictionary();
     </script>
 </body>
 </html>
