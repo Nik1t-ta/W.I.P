@@ -66,9 +66,8 @@
                 
                 const text = await response.text();
                 
-                // Support both huge one-line and normal dictionary formats
                 dictionary = text.split(/\s+/).map(w => w.trim().toLowerCase())
-                                   .filter(w => w.length > 2);  // skip very short words
+                                   .filter(w => w.length > 2);
                 
                 wordSet = new Set(dictionary);
                 
@@ -81,43 +80,46 @@
             }
         }
 
+        function getRandomWord() {
+            return dictionary[Math.floor(Math.random() * dictionary.length)];
+        }
+
         function getBotResponse(userMessage) {
-            if (dictionary.length === 0) return "dictionary is empty";
+            if (dictionary.length === 0) return "dictionary empty";
 
             const msg = userMessage.toLowerCase().trim();
-            
             let words = [];
 
-            // Try to pick some relevant words from user message if they exist in dictionary
+            // Echo some words from user if they exist in dictionary
             const userWords = msg.match(/\b\w+\b/g) || [];
             userWords.forEach(w => {
-                if (wordSet.has(w) && !words.includes(w)) {
-                    words.push(w);
-                }
+                if (wordSet.has(w)) words.push(w);
             });
 
-            // Add random words from your dictionary to make a full sentence
-            const targetLength = 6 + Math.floor(Math.random() * 8); // 6 to 13 words
+            // Basic sentence patterns using only your dictionary words
+            const patterns = [
+                [getRandomWord(), getRandomWord(), "the", getRandomWord(), getRandomWord(), getRandomWord()],
+                ["i", getRandomWord(), getRandomWord(), "you", getRandomWord(), getRandomWord()],
+                ["the", getRandomWord(), getRandomWord(), "is", getRandomWord(), getRandomWord()],
+                [getRandomWord(), getRandomWord(), "and", getRandomWord(), getRandomWord(), "now"],
+                ["you", getRandomWord(), getRandomWord(), "this", getRandomWord(), getRandomWord()]
+            ];
 
-            while (words.length < targetLength) {
-                const randomWord = dictionary[Math.floor(Math.random() * dictionary.length)];
-                words.push(randomWord);
+            let base = patterns[Math.floor(Math.random() * patterns.length)];
+
+            // Add some user words at the beginning if available
+            if (words.length > 0) {
+                base.unshift(...words.slice(0, 2));
             }
 
-            // Shuffle a bit so it's not too predictable
-            for (let i = words.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [words[i], words[j]] = [words[j], words[i]];
+            // Fill any missing slots with random words
+            while (base.length < 7) {
+                base.push(getRandomWord());
             }
 
-            let reply = words.join(" ");
-            
-            // Capitalize first letter
+            let reply = base.join(" ");
             reply = reply.charAt(0).toUpperCase() + reply.slice(1);
-            
-            // Add random ending punctuation
-            const punct = [".", "!", "?", "."];
-            reply += punct[Math.floor(Math.random() * punct.length)];
+            reply += [".", "!", "?"][Math.floor(Math.random() * 3)];
 
             return reply;
         }
