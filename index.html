@@ -3,19 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whatever is this...</title>
+    <title>Dictionary Bot</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         #chat-container {
-            width: 400px;
-            height: 500px;
+            width: 420px;
+            height: 620px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -23,41 +16,18 @@
             flex-direction: column;
             overflow: hidden;
         }
-        #chat-box {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            border-bottom: 1px solid #eee;
-        }
+        #chat-box { flex: 1; padding: 15px; overflow-y: auto; border-bottom: 1px solid #eee; }
         .message {
             margin-bottom: 10px;
             padding: 8px 12px;
             border-radius: 15px;
-            max-width: 70%;
+            max-width: 75%;
             word-wrap: break-word;
         }
-        .user {
-            background-color: #007bff;
-            color: white;
-            align-self: flex-end;
-            margin-left: auto;
-        }
-        .bot {
-            background-color: #e9ecef;
-            color: #333;
-            align-self: flex-start;
-        }
-        #input-area {
-            display: flex;
-            padding: 10px;
-        }
-        #user-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            outline: none;
-        }
+        .user { background-color: #007bff; color: white; align-self: flex-end; margin-left: auto; }
+        .bot { background-color: #e9ecef; color: #333; align-self: flex-start; }
+        #input-area { display: flex; padding: 10px; }
+        #user-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
         #send-btn {
             padding: 10px 15px;
             background: #28a745;
@@ -79,50 +49,79 @@
             <button id="send-btn" disabled>Send</button>
         </div>
     </div>
+
     <script>
         let dictionary = [];
+        let wordSet = new Set();
+
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const chatBox = document.getElementById('chat-box');
         const statusMsg = document.getElementById('status-msg');
+
         async function loadDictionary() {
             try {
                 const response = await fetch('dictionary.txt');
-                if (!response.ok) {
-                    throw new Error("Could not read dictionary.txt");
-                }
+                if (!response.ok) throw new Error("File not found");
+                
                 const text = await response.text();
-                dictionary = text.split(/\r?\n/).map(word => word.trim()).filter(word => word.length > 0);
-                if (dictionary.length === 1) {
-                    dictionary = text.split(/\s+/).map(word => word.trim()).filter(word => word.length > 0);
-                }
-                if (dictionary.length > 0) {
-                    statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt.`;
-                    userInput.disabled = false;
-                    sendBtn.disabled = false;
-                } else {
-                    statusMsg.textContent = "Error: dictionary.txt is empty.";
-                }
+                
+                // Support both huge one-line and normal dictionary formats
+                dictionary = text.split(/\s+/).map(w => w.trim().toLowerCase())
+                                   .filter(w => w.length > 2);  // skip very short words
+                
+                wordSet = new Set(dictionary);
+                
+                statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt`;
+                userInput.disabled = false;
+                sendBtn.disabled = false;
             } catch (error) {
-                statusMsg.textContent = "Error loading dictionary.txt. Make sure both files are in the same directory and hosted via GitHub Pages.";
+                statusMsg.textContent = "Error loading dictionary.txt";
                 console.error(error);
             }
         }
-        function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
-            appendMessage('User', text);
-            userInput.value = '';
-            setTimeout(() => {
-                const botReply = getBotResponse();
-                appendMessage('Bot', botReply);
-            }, 400);
+
+        function getBotResponse(userMessage) {
+            if (dictionary.length === 0) return "dictionary is empty";
+
+            const msg = userMessage.toLowerCase().trim();
+            
+            let words = [];
+
+            // Try to pick some relevant words from user message if they exist in dictionary
+            const userWords = msg.match(/\b\w+\b/g) || [];
+            userWords.forEach(w => {
+                if (wordSet.has(w) && !words.includes(w)) {
+                    words.push(w);
+                }
+            });
+
+            // Add random words from your dictionary to make a full sentence
+            const targetLength = 6 + Math.floor(Math.random() * 8); // 6 to 13 words
+
+            while (words.length < targetLength) {
+                const randomWord = dictionary[Math.floor(Math.random() * dictionary.length)];
+                words.push(randomWord);
+            }
+
+            // Shuffle a bit so it's not too predictable
+            for (let i = words.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [words[i], words[j]] = [words[j], words[i]];
+            }
+
+            let reply = words.join(" ");
+            
+            // Capitalize first letter
+            reply = reply.charAt(0).toUpperCase() + reply.slice(1);
+            
+            // Add random ending punctuation
+            const punct = [".", "!", "?", "."];
+            reply += punct[Math.floor(Math.random() * punct.length)];
+
+            return reply;
         }
-        function getBotResponse() {
-            if (dictionary.length === 0) return "I have no words loaded.";
-            const randomIndex = Math.floor(Math.random() * dictionary.length);
-            return dictionary[randomIndex];
-        }
+
         function appendMessage(sender, text) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender.toLowerCase());
@@ -130,10 +129,25 @@
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage('User', text);
+            userInput.value = '';
+
+            setTimeout(() => {
+                const botReply = getBotResponse(text);
+                appendMessage('Bot', botReply);
+            }, 350);
+        }
+
         sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', function(e) {
+        userInput.addEventListener('keypress', e => {
             if (e.key === 'Enter') sendMessage();
         });
+
         loadDictionary();
     </script>
 </body>
