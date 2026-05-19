@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dictionary Bot</title>
+    <title>Whatever the hell says is this...</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         #chat-container {
-            width: 420px;
-            height: 620px;
+            width: 440px;
+            height: 650px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -49,28 +49,21 @@
             <button id="send-btn" disabled>Send</button>
         </div>
     </div>
-
     <script>
         let dictionary = [];
         let wordSet = new Set();
-
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         const chatBox = document.getElementById('chat-box');
         const statusMsg = document.getElementById('status-msg');
-
         async function loadDictionary() {
             try {
                 const response = await fetch('dictionary.txt');
                 if (!response.ok) throw new Error("File not found");
-                
                 const text = await response.text();
-                
                 dictionary = text.split(/\s+/).map(w => w.trim().toLowerCase())
-                                   .filter(w => w.length > 2);
-                
+                                   .filter(w => w.length > 0);
                 wordSet = new Set(dictionary);
-                
                 statusMsg.textContent = `Connected! Loaded ${dictionary.length} words from dictionary.txt`;
                 userInput.disabled = false;
                 sendBtn.disabled = false;
@@ -79,51 +72,41 @@
                 console.error(error);
             }
         }
-
         function getRandomWord() {
             return dictionary[Math.floor(Math.random() * dictionary.length)];
         }
-
         function getBotResponse(userMessage) {
             if (dictionary.length === 0) return "dictionary empty";
-
             const msg = userMessage.toLowerCase().trim();
-            let words = [];
-
-            // Echo some words from user if they exist in dictionary
+            let replyWords = [];
             const userWords = msg.match(/\b\w+\b/g) || [];
             userWords.forEach(w => {
-                if (wordSet.has(w)) words.push(w);
+                if (wordSet.has(w)) replyWords.push(w);
             });
-
-            // Basic sentence patterns using only your dictionary words
-            const patterns = [
-                [getRandomWord(), getRandomWord(), "the", getRandomWord(), getRandomWord(), getRandomWord()],
-                ["i", getRandomWord(), getRandomWord(), "you", getRandomWord(), getRandomWord()],
-                ["the", getRandomWord(), getRandomWord(), "is", getRandomWord(), getRandomWord()],
-                [getRandomWord(), getRandomWord(), "and", getRandomWord(), getRandomWord(), "now"],
-                ["you", getRandomWord(), getRandomWord(), "this", getRandomWord(), getRandomWord()]
+            const templates = [
+                ["the", getRandomWord(), getRandomWord(), "is", getRandomWord(), getRandomWord(), "now"],
+                ["i", getRandomWord(), getRandomWord(), "you", getRandomWord(), "very", getRandomWord()],
+                ["you", getRandomWord(), "the", getRandomWord(), "and", getRandomWord()],
+                [getRandomWord(), getRandomWord(), "with", getRandomWord(), getRandomWord(), "today"],
+                ["hello", getRandomWord(), "how", getRandomWord(), "you", getRandomWord()],
+                ["this", getRandomWord(), "makes", getRandomWord(), getRandomWord()]
             ];
-
-            let base = patterns[Math.floor(Math.random() * patterns.length)];
-
-            // Add some user words at the beginning if available
-            if (words.length > 0) {
-                base.unshift(...words.slice(0, 2));
+            let base = templates[Math.floor(Math.random() * templates.length)];
+            if (replyWords.length > 0) {
+                base = replyWords.slice(0, 3).concat(base);
             }
-
-            // Fill any missing slots with random words
-            while (base.length < 7) {
+            while (base.length < 8) {
                 base.push(getRandomWord());
             }
-
+            for (let i = base.length - 1; i > 3; i--) {
+                const j = Math.floor(Math.random() * (i - 2)) + 2;
+                [base[i], base[j]] = [base[j], base[i]];
+            }
             let reply = base.join(" ");
             reply = reply.charAt(0).toUpperCase() + reply.slice(1);
-            reply += [".", "!", "?"][Math.floor(Math.random() * 3)];
-
+            reply += [".", "!", ".", "?"][Math.floor(Math.random() * 4)];
             return reply;
         }
-
         function appendMessage(sender, text) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender.toLowerCase());
@@ -131,25 +114,20 @@
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
-
         function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
-
             appendMessage('User', text);
             userInput.value = '';
-
             setTimeout(() => {
                 const botReply = getBotResponse(text);
                 appendMessage('Bot', botReply);
-            }, 350);
+            }, 400);
         }
-
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', e => {
             if (e.key === 'Enter') sendMessage();
         });
-
         loadDictionary();
     </script>
 </body>
