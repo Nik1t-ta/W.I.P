@@ -83,26 +83,24 @@
 
 			let responseWords = [];
 
-			// Use user's words when they exist in dictionary
-			userWords.forEach(w => {
-				if (wordSet.has(w)) {
-					responseWords.push(w);
-				}
-			});
+			// Strongly feature the user's own words
+			if (userWords.length > 0) {
+				responseWords.push(...userWords);
+				responseWords.push(...userWords); // repeat them so they stand out
+			}
 
-			// Heavy dictionary usage
-			const totalDictWords = 25 + Math.floor(Math.random() * 18);
+			// Heavy dictionary spam (your 11k+ words)
+			const totalDictWords = 20 + Math.floor(Math.random() * 15);
 
 			for (let i = 0; i < totalDictWords; i++) {
 				const randomWord = dictionary[Math.floor(Math.random() * dictionary.length)];
 				responseWords.push(randomWord);
 			}
 
-			// Keep user's words near front, shuffle the rest
-			const userPart = responseWords.slice(0, Math.min(5, userWords.length));
-			const dictPart = responseWords.slice(userPart.length);
+			// Shuffle only after the user's words
+			const userPart = responseWords.slice(0, userWords.length * 2);
+			const dictPart = responseWords.slice(userWords.length * 2);
 
-			// Shuffle dictionary part
 			for (let i = dictPart.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
 				[dictPart[i], dictPart[j]] = [dictPart[j], dictPart[i]];
@@ -112,9 +110,8 @@
 
 			let reply = finalWords.join(" ");
 			
-			// Polish
 			reply = reply.charAt(0).toUpperCase() + reply.slice(1);
-			reply += [".", "!", "...", "."][Math.floor(Math.random() * 4)];
+			reply += [".", "!", "...", "?!", "."][Math.floor(Math.random() * 5)];
 
 			return reply;
 		}
