@@ -83,35 +83,30 @@
 
 			let responseWords = [];
 
-			// Strongly feature the user's own words
+			// Put user's words first so it feels like it's listening
 			if (userWords.length > 0) {
-				responseWords.push(...userWords);
-				responseWords.push(...userWords); // repeat them so they stand out
+				responseWords.push(...userWords.slice(0, 4));
 			}
 
-			// Heavy dictionary spam (your 11k+ words)
-			const totalDictWords = 20 + Math.floor(Math.random() * 15);
+			// Add only a few random words from dictionary (short reply)
+			const totalDictWords = 6 + Math.floor(Math.random() * 6); // 6 to 11 words total
 
 			for (let i = 0; i < totalDictWords; i++) {
 				const randomWord = dictionary[Math.floor(Math.random() * dictionary.length)];
 				responseWords.push(randomWord);
 			}
 
-			// Shuffle only after the user's words
-			const userPart = responseWords.slice(0, userWords.length * 2);
-			const dictPart = responseWords.slice(userWords.length * 2);
-
-			for (let i = dictPart.length - 1; i > 0; i--) {
+			// Light shuffle
+			for (let i = responseWords.length - 1; i > 3; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
-				[dictPart[i], dictPart[j]] = [dictPart[j], dictPart[i]];
+				[responseWords[i], responseWords[j]] = [responseWords[j], responseWords[i]];
 			}
 
-			const finalWords = [...userPart, ...dictPart];
-
-			let reply = finalWords.join(" ");
+			let reply = responseWords.join(" ");
 			
+			// Make it look natural
 			reply = reply.charAt(0).toUpperCase() + reply.slice(1);
-			reply += [".", "!", "...", "?!", "."][Math.floor(Math.random() * 5)];
+			reply += [".", "!", "?", "...", "!!"][Math.floor(Math.random() * 5)];
 
 			return reply;
 		}
